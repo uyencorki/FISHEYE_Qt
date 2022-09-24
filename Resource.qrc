@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/icon">
+        <file>favicon.ico</file>
+        <file>HinoApp.PNG</file>
+    </qresource>
+</RCC>
