@@ -40,7 +40,7 @@ private slots:
   void stopThreads();
   void pauseThreads();
   void resumeThreads();
-  void receiveSignal3(QString, QString, int);
+  void receive_dir(QString, QString, int, int);
 
 
 signals:

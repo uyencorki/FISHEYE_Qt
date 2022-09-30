@@ -26,11 +26,32 @@
 #include <opencv2/highgui.hpp>  // OpenCV window I/O
 #include <opencv2/calib3d/calib3d.hpp>
 
+#include <QFileDialog>
+#include <QTreeView>
+
 #include "worker.h"
 
 const double PI = 3.1415;
 using namespace cv;
 using namespace std;
+
+#define mode 1
+#define old_code 0
+
+bool stop_dis = false;
+int start = 0;
+QElapsedTimer timer_1;
+
+int print_time = 0;
+bool default_dir = true;
+
+int process_time = 0 ;
+bool done = false;
+
+vector<QString> load_img;
+QString load_img_file[1000000];
+int file_count_M = 0;
+
 
 int  buildMap_2_pano (Mat &map_x, Mat &map_y, int Ws, int Hs, int Wd, int Hd )
 {
@@ -172,10 +193,6 @@ int findCorrespondingFisheyePoint(Mat &map_x, Mat &map_y, double He, double We,
 //       return fisheyePoint;
 
 }
-
-
-#define mode 1
-#define old_code 0
 
 int Proccess (QString input_dir, QString output_dir, int mode_change )
 {
@@ -390,15 +407,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     Worker *work = new Worker(5);
 
-
-    connect(this, SIGNAL(signal3(QString,QString,int)), work, SLOT(receiveSignal3(QString,QString,int)));
+    connect(this, SIGNAL(pass_dir( QString, QString, int, int)), work, SLOT(receive_dir(QString ,QString,int, int)));
 
     connect(work, SIGNAL(incrThreadDone()), this, SLOT(incrThreadDoneChange()));
 
     connect(this, SIGNAL(stop_signal()), work, SLOT(stopThreads()));
-
-
-//    connect(work, SIGNAL(run_time()), this, SLOT(display_time()));
 
     timer = new QTimer(this);
 
@@ -407,7 +420,6 @@ MainWindow::MainWindow(QWidget *parent)
     timer->start(100);
 
     // msec
-
     waitKey(0);    // Waits for a keystroke in the window
 
 }
@@ -418,76 +430,101 @@ MainWindow::~MainWindow()
 }
 
 
-int start = 0;
-QElapsedTimer timer_1;
-
-
 void MainWindow::on_spinBox_valueChanged(int arg1)
 {
     cout << "arg1 " << arg1 << endl;
 }
 
 
-int print_time = 0;
-bool default_dir = true;
-
-int process_time = 0 ;
-bool done = false;
+int p = 0;
+String *a;
 
 void MainWindow::on_start_clicked()
 {
-
+    // reset parameter
+    stop_dis  = false;
     done = false;
     ui->progressBar->setValue(0);
     ui->spend_time->setText(QString::number(0));
-
     timer_1.start();
     int mode_change ;
     QString input_folder, output_folder;
 
-    // use default directory
-    if (default_dir == true )
+    output_folder  = ui->output_folder->toPlainText();
+    output_folder = output_folder.replace("\\", "/");
+
+
+
+    cout << "file_count_M " << file_count_M << endl;
+
+    int count = 0;
+    for (count = 0; count < file_count_M; count ++)
     {
-        cout << "use default directory " << endl;
-        QString exe_dir;
+//        cout << "file name in start : " << load_img_file[count].toStdString() << endl << endl;
+        input_folder = load_img_file[count];
+        emit pass_dir(input_folder,output_folder,mode_change, count);
+    }
 
-        exe_dir = QCoreApplication::applicationDirPath();
 
-        input_folder  = exe_dir + QString("/input");
-        output_folder = exe_dir +  QString("/output");
+    // use default directory
+    if ((ui->input_folder->toPlainText().isEmpty()) || (ui->output_folder->toPlainText().isEmpty()) )
+    {
+        if (ui->input_folder->toPlainText().isEmpty())
+                    ui->input_folder->setText("Please, choose input folder" );
 
-        ui->input_folder->setText(input_folder);
-        ui->output_folder->setText(output_folder);
-
+        if (ui->output_folder->toPlainText().isEmpty())
+                    ui->output_folder->setText("Please, choose output folder" );
 
     }
     else  // set directory
     {
+
         // explicitly using the relative name of the current working directory
         input_folder   = ui->input_folder->toPlainText();
         output_folder  = ui->output_folder->toPlainText();
+
+
+        // handle String
+        input_folder = input_folder.replace("\\", "/");
+        output_folder = output_folder.replace("\\", "/");
+
+
+        // check number of file
+        vector<String> files;
+        glob(input_folder.toStdString(), files);
+        ui->number_of_img->setText(QString::number(files.size()));
+
+        cout << "input state " << QDir(input_folder).exists() << endl;
+        cout << "outout state " << QDir(output_folder).exists() << endl;
+
+        if ( QDir(input_folder).exists() && QDir(output_folder).exists()  )
+        {
+            // transfer dir data and mode process to class worker
+            mode_change    = ui->spinBox->value();
+
+            Worker *work = new Worker(5);
+            connect(work, SIGNAL(incrThreadDone()), this, SLOT(incrThreadDoneChange()));
+            connect(work, SIGNAL(run_percent(int)), this, SLOT(get_run_percent(int)));
+            work->start();
+
+            print_time = 1;
+         }
+         {
+
+            if  (QDir(input_folder).exists() == false )
+            {
+                    cout << " colorr" << endl;
+                    ui->input_folder->setTextColor(QColor(255, 0, 0));
+                    ui->input_folder->setText("Please, choose input folder!!! ");
+            }
+
+            if (QDir(output_folder).exists() == false )
+            {
+                    ui->output_folder->setTextColor(QColor(255, 0, 0));
+                    ui->output_folder->setText("Please, choose output folder!!!");
+            }
+        }
     }
-
-
-    // handle String
-    input_folder = input_folder.replace("\\", "/");
-    output_folder = output_folder.replace("\\", "/");
-    vector<String> files;
-    glob(input_folder.toStdString(), files);
-    ui->number_of_img->setText(QString::number(files.size()));
-
-
-    // transfer dir data and mode process to class worker
-    mode_change    = ui->spinBox->value();
-    emit signal3(input_folder,output_folder,mode_change);
-
-    Worker *work = new Worker(5);
-    connect(work, SIGNAL(incrThreadDone()), this, SLOT(incrThreadDoneChange()));
-    connect(work, SIGNAL(run_percent(int)), this, SLOT(get_run_percent(int)));
-    work->start();
-
-    print_time = 1;
-
 
 
 }
@@ -506,8 +543,16 @@ void MainWindow::MyTimerSlot()
 
 void MainWindow::get_run_percent(int percent)
 {
-//    cout << "second " << endl;
-    ui->progressBar->setValue(percent);
+    if (stop_dis  == true)
+
+    {
+        QThread::sleep(1);
+        ui->progressBar->setValue(100);
+
+    }
+    else
+        ui->progressBar->setValue(percent);
+
 }
 
 void MainWindow::incrThreadDoneChange()
@@ -516,23 +561,106 @@ void MainWindow::incrThreadDoneChange()
     qDebug() << "incrThreadDone "<< endl;
 }
 
-void MainWindow::on_checkBox_stateChanged(int arg1)
-{
-    if (arg1 == 2 )
-    {
-        cout << "default_dir is true " << endl;
-
-        default_dir = true;
-    }
-    else
-    {
-        cout << "default_dir is false " << endl;
-        default_dir = false;
-    }
-}
-
 void MainWindow::on_Stop_Button_clicked()
 {
 //    cout << "on_Stop_Button_clicked" << endl;
     emit stop_signal();
+    timer_1.elapsed();
+    ui->spend_time->setText(QString::number( timer_1.elapsed()/1000));
+
+    stop_dis  = true;
+    print_time = 0;
+}
+
+void MainWindow::on_choose_input_clicked()
+{
+
+    ui->input_folder->setTextColor(QColor(105, 105, 105));
+    QFileDialog dialog(this);
+    dialog.setNameFilter(tr("Images (*.png *.xpm *.jpg)"));
+    dialog.setViewMode(QFileDialog::Detail);
+    dialog.setFileMode(QFileDialog::ExistingFiles);
+
+    if ( QDialog::Accepted == dialog.exec() )
+    {
+        QStringList filenames = dialog.selectedFiles();
+        QStringList::const_iterator it = filenames.begin();
+        QStringList::const_iterator eIt = filenames.end();
+
+        int j = 0 ;
+        file_count_M = int(filenames.size());
+        cout << "total file:  " << file_count_M << endl;
+
+        while ( it != eIt )
+        {
+            QString fileName = *it++;
+            if ( !fileName.isEmpty() )
+            {
+                   load_img_file[j] = fileName;
+                   j ++ ;
+
+            }
+        }
+
+
+        QStringList pieces = load_img_file[0].split( "/" );
+        QString neededWord = pieces.value( pieces.length() - 1 );
+
+        QString Dir ;
+
+        for (int i = 0 ; i < pieces.length() - 1; i ++  )
+        {
+            if (i <pieces.length() - 2 )
+                Dir= Dir +  pieces.value( i ) + "/" ;
+            else
+                 Dir= Dir +  pieces.value( i )  ;
+        }
+        ui->input_folder->setText(Dir);
+
+//        cout  << "Dir == " << Dir.toStdString() << endl;
+//        cout << "neededWord:    " << neededWord.toStdString() << endl;
+
+    }
+}
+
+void MainWindow::on_choose_output_clicked()
+{
+    ui->output_folder->setTextColor(QColor(105, 105, 105));
+
+//    QString filename =  QFileDialog::getOpenFileName(this,"output",QDir::currentPath(),
+//             "All files (*.*) ;; images (*.png *.jpg) ;; Document files (*.doc *.rtf)");
+//    if( !filename.isNull() )
+//      {
+//        qDebug() << "selected file path : " << filename.toUtf8();
+//      }
+
+
+//    QString filename_1 =  QFileDialog::getExistingDirectory( this, "output", QDir::currentPath(),
+//                                                             QFileDialog::ShowDirsOnly );
+//    if( !filename_1.isNull() )
+//              {
+//                qDebug() << "selected file path : " << filename_1.toUtf8();
+//              }
+//    ui->output_folder->setText(filename_1);
+
+
+
+    QString filename_1 =  QFileDialog::getExistingDirectory( this, "output", QDir::currentPath(),
+                                            QFileDialog::DontUseCustomDirectoryIcons );
+    if( !filename_1.isNull() )
+              {
+                qDebug() << "selected file path : " << filename_1.toUtf8();
+              }
+    ui->output_folder->setText(filename_1);
+
+
+//    QString filename_1 =  QFileDialog::getExistingDirectory
+//            ( this, "output", QDir::currentPath(),
+//                                            QFileDialog::DontUseNativeDialog );
+//    if( !filename_1.isNull() )
+//              {
+//                qDebug() << "selected file path : " << filename_1.toUtf8();
+//              }
+//    ui->output_folder->setText(filename_1);
+
 }

@@ -11,11 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>FISHEYE_SOFTWARE_HINOENG</string>
-  </property>
-  <property name="windowIcon">
-   <iconset resource="Resource.qrc">
-    <normaloff>:/icon/HinoApp.PNG</normaloff>:/icon/HinoApp.PNG</iconset>
+   <string>FISHEYE_SOFTWARE</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -34,9 +30,9 @@
         <property name="geometry">
          <rect>
           <x>0</x>
-          <y>90</y>
+          <y>110</y>
           <width>661</width>
-          <height>81</height>
+          <height>51</height>
          </rect>
         </property>
         <property name="font">
@@ -54,53 +50,13 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_2">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>50</y>
-          <width>231</width>
-          <height>51</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>14</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Input directory</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_3">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>160</y>
-          <width>261</width>
-          <height>51</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>14</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Output directory</string>
-        </property>
-       </widget>
        <widget class="QTextEdit" name="output_folder">
         <property name="geometry">
          <rect>
           <x>0</x>
-          <y>200</y>
+          <y>220</y>
           <width>661</width>
-          <height>81</height>
+          <height>51</height>
          </rect>
         </property>
         <property name="font">
@@ -174,6 +130,9 @@ p, li { white-space: pre-wrap; }
           <bold>true</bold>
          </font>
         </property>
+        <property name="maximum">
+         <number>1</number>
+        </property>
        </widget>
        <widget class="QLabel" name="label_5">
         <property name="geometry">
@@ -198,8 +157,8 @@ p, li { white-space: pre-wrap; }
        <widget class="QPushButton" name="start">
         <property name="geometry">
          <rect>
-          <x>250</x>
-          <y>500</y>
+          <x>260</x>
+          <y>570</y>
           <width>161</width>
           <height>61</height>
          </rect>
@@ -215,37 +174,11 @@ p, li { white-space: pre-wrap; }
          <string>START</string>
         </property>
        </widget>
-       <widget class="QCheckBox" name="checkBox">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>10</y>
-          <width>301</width>
-          <height>41</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>14</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Use default directory</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-        <property name="tristate">
-         <bool>false</bool>
-        </property>
-       </widget>
        <widget class="QPushButton" name="Stop_Button">
         <property name="geometry">
          <rect>
-          <x>250</x>
-          <y>600</y>
+          <x>260</x>
+          <y>650</y>
           <width>161</width>
           <height>61</height>
          </rect>
@@ -258,7 +191,47 @@ p, li { white-space: pre-wrap; }
          </font>
         </property>
         <property name="text">
-         <string>STOP</string>
+         <string>CANCEL</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="choose_input">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>60</y>
+          <width>291</width>
+          <height>41</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Choose input directory</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="choose_output">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>170</y>
+          <width>291</width>
+          <height>41</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Choose output directory</string>
         </property>
        </widget>
       </widget>
@@ -266,14 +239,14 @@ p, li { white-space: pre-wrap; }
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>60</y>
-         <width>211</width>
+         <y>70</y>
+         <width>131</width>
          <height>121</height>
         </rect>
        </property>
        <property name="font">
         <font>
-         <pointsize>62</pointsize>
+         <pointsize>38</pointsize>
          <weight>75</weight>
          <bold>true</bold>
          <strikeout>false</strikeout>
@@ -329,10 +302,10 @@ p, li { white-space: pre-wrap; }
       <widget class="QLabel" name="spend_time_2">
        <property name="geometry">
         <rect>
-         <x>240</x>
+         <x>160</x>
          <y>60</y>
          <width>271</width>
-         <height>131</height>
+         <height>141</height>
         </rect>
        </property>
        <property name="font">
@@ -382,8 +355,6 @@ p, li { white-space: pre-wrap; }
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <resources>
-  <include location="Resource.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

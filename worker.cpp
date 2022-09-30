@@ -44,22 +44,21 @@ const double PI = 3.1415;
 bool stop_convert = false;
 
 
-
-
-
-
 #if process
 
 // global variable
 int global_He, global_We;
 
 Mat map_x_glo, map_y_glo;
-QString input_dir, output_dir;
 int mode_prcess;
 
-vector<String> filenames;
-
+//vector<String> file_names;
 int new_hei, new_wid;
+
+QString  output_dir;
+
+String file_names [1000000];
+int file_count = 0;
 
 
 // Algorithm
@@ -144,7 +143,7 @@ int IMG_coordinates_mode_0 ()
 
 
        // read first image to know with and height
-       fisheyeImage = imread (filenames[0]);
+       fisheyeImage = imread (file_names[0]);
        Hf = fisheyeImage.size().height;
        Wf = fisheyeImage.size().width;
 
@@ -173,8 +172,6 @@ int IMG_coordinates_mode_0 ()
 
 }
 
-
-
 int IMG_coordinates_mode_1 ()
 {
 
@@ -183,7 +180,7 @@ int IMG_coordinates_mode_1 ()
     float degree, ratio_degree, R, Cfx, Cfy;
     int Hf, Wf;
 
-    fisheyeImage = imread (filenames[0]);
+    fisheyeImage = imread (file_names[0]);
 
     degree = 240;
     ratio_degree = degree / 360;
@@ -210,9 +207,7 @@ int IMG_coordinates_mode_1 ()
 
     return 0 ;
 }
-
 // end
-
 #endif
 
 
@@ -222,16 +217,13 @@ Worker::Worker(int threads_count)
     this->threads = threads_count;
 }
 
-
 QElapsedTimer timer;
 
 void Worker::run()
 {
   timer.start();
-
   qDebug() << "Worker start";
-  input_dir = input_dir + "/*.jpg";
-  cout << "input_dir task_1 = " << input_dir.toStdString() << endl;
+
 
   if (mode_prcess == 0)
     {
@@ -287,15 +279,16 @@ void Worker::task_1()
         String save_name;
         Mat  image,cropped_image,convert_img, save_img;
 
-        image = imread (filenames[0]);
+        image = imread (file_names[0]);
         cropped_image.create(global_He, global_We, image.type());
         int per_cent;
 
-        for(size_t i=0; i<filenames.size()/task_count;i++ )
+        cout << "output:   "  << output_dir.toStdString()<< endl;
+        for(int i=0; i<file_count/task_count;i++ )
            {
 
                 // Read image and crop image
-                image = imread (filenames[i]);
+                image = imread (file_names[i]);
                 image(cv::Rect(image.cols/2 -image.rows/2 ,0,image.rows,image.rows)).copyTo(cropped_image);
 
                 // change image
@@ -309,7 +302,7 @@ void Worker::task_1()
                 resize(res, save_img, Size(5376, 2688), INTER_LINEAR);
                 imwrite(save_name,save_img );
 
-                per_cent = int (i*100 /(filenames.size()/task_count));
+                per_cent = int (i*100 /(file_count/task_count));
                 emit run_percent (per_cent);
 
                 // stop convert image
@@ -333,10 +326,24 @@ void Worker::task_1()
         int per_cent;
 
         String save_name;
-        for(size_t i=0; i<filenames.size()/task_count;i++ )
+        for(int i=0; i<file_count/task_count;i++ )
            {
 
-                fisheyeImage = imread (filenames[i]);
+            per_cent = int (i*100 /(file_count/task_count));
+//                emit run_percent (per_cent);
+
+            // stop convert image
+            if (stop_convert == true )
+            {
+                goto done_task_1;
+            }
+            else
+            {
+                emit run_percent (per_cent);
+
+            }
+
+                fisheyeImage = imread (file_names[i]);
                 remap( fisheyeImage, out_Img, map_x_glo, map_y_glo, INTER_LINEAR,
                                                                 BORDER_CONSTANT, Scalar(0, 0, 0) );
 
@@ -347,14 +354,7 @@ void Worker::task_1()
                 cout << "save_name =  " << save_name << endl;
                 imwrite(save_name,save_img );
 
-                per_cent = int (i*100 /(filenames.size()/task_count));
-                emit run_percent (per_cent);
 
-                // stop convert image
-                if (stop_convert == true )
-                {
-                    goto done_task_1;
-                }
            }
 
    }
@@ -383,13 +383,13 @@ void Worker::task_2()
         String save_name;
         Mat  image,cropped_image,convert_img, save_img;
 
-        image = imread (filenames[0]);
+        image = imread (file_names[0]);
         cropped_image.create(global_He, global_We, image.type());
 
-        for(size_t i=filenames.size()/task_count; i<filenames.size()*2/task_count;i++ )
+        for(int i=file_count/task_count; i<file_count*2/task_count;i++ )
            {
                 // Read image and crop image
-                image = imread (filenames[i]);
+                image = imread (file_names[i]);
 
                 image(cv::Rect(image.cols/2 -image.rows/2 ,0,image.rows,image.rows)).copyTo(cropped_image);
 
@@ -426,10 +426,10 @@ void Worker::task_2()
         Mat save_img, out_Img;
 
         String save_name;
-        for(size_t i = filenames.size()/task_count; i<filenames.size()*2/task_count;i++ )
+        for(int i = file_count/task_count; i<file_count*2/task_count;i++ )
            {
 
-                fisheyeImage = imread (filenames[i]);
+                fisheyeImage = imread (file_names[i]);
                 remap( fisheyeImage, out_Img, map_x_glo, map_y_glo, INTER_LINEAR,
                                                                 BORDER_CONSTANT, Scalar(0, 0, 0) );
 
@@ -474,14 +474,14 @@ void Worker::task_3()
                 String save_name;
                 Mat  image,cropped_image,convert_img, save_img;
 
-                image = imread (filenames[0]);
+                image = imread (file_names[0]);
                 cropped_image.create(global_He, global_We, image.type());
 
-                for(size_t i=filenames.size()*2/task_count;  i<filenames.size()*3/task_count; i++ )
+                for(int i=file_count*2/task_count;  i<file_count*3/task_count; i++ )
                    {
 
                         // Read image and crop image
-                        image = imread (filenames[i]);
+                        image = imread (file_names[i]);
                         image(cv::Rect(image.cols/2 -image.rows/2 ,0,image.rows,image.rows)).copyTo(cropped_image);
 
                         // change image
@@ -518,10 +518,10 @@ void Worker::task_3()
        Mat save_img, out_Img;
 
        String save_name;
-       for(size_t i = filenames.size()*2/task_count; i<filenames.size()*3/task_count;i++ )
+       for(int i = file_count*2/task_count; i<file_count*3/task_count;i++ )
           {
 
-               fisheyeImage = imread (filenames[i]);
+               fisheyeImage = imread (file_names[i]);
                remap( fisheyeImage, out_Img, map_x_glo, map_y_glo, INTER_LINEAR,
                                                                BORDER_CONSTANT, Scalar(0, 0, 0) );
 
@@ -566,13 +566,13 @@ void Worker::task_4()
             String save_name;
             Mat  image,cropped_image,convert_img, save_img;
 
-            image = imread (filenames[0]);
+            image = imread (file_names[0]);
             cropped_image.create(global_He, global_We, image.type());
 
-            for(size_t i=filenames.size()*3/task_count; i<filenames.size()*4/task_count;i++ )
+            for(int i=file_count*3/task_count; i<file_count*4/task_count;i++ )
                {
                     // Read image and crop image
-                    image = imread (filenames[i]);
+                    image = imread (file_names[i]);
                     image(cv::Rect(image.cols/2 -image.rows/2 ,0,image.rows,image.rows)).copyTo(cropped_image);
 
                     // change image
@@ -607,10 +607,10 @@ void Worker::task_4()
               Mat save_img, out_Img;
 
               String save_name;
-              for(size_t i = filenames.size()*3/task_count; i<filenames.size()*4/task_count;i++ )
+              for(int i = file_count*3/task_count; i<file_count*4/task_count;i++ )
                  {
 
-                      fisheyeImage = imread (filenames[i]);
+                      fisheyeImage = imread (file_names[i]);
                       remap( fisheyeImage, out_Img, map_x_glo, map_y_glo, INTER_LINEAR,
                                                                       BORDER_CONSTANT, Scalar(0, 0, 0) );
 
@@ -653,13 +653,13 @@ void Worker::task_5()
             String save_name;
             Mat  image,cropped_image,convert_img, save_img;
 
-            image = imread (filenames[0]);
+            image = imread (file_names[0]);
             cropped_image.create(global_He, global_We, image.type());
 
-            for(size_t i=filenames.size()*4/task_count; i<filenames.size();i++ )
+            for(int i=file_count*4/task_count; i<file_count;i++ )
                {
                     // Read image and crop image
-                    image = imread (filenames[i]);
+                    image = imread (file_names[i]);
                     image(cv::Rect(image.cols/2 -image.rows/2 ,0,image.rows,image.rows)).copyTo(cropped_image);
 
                     // change image
@@ -694,10 +694,10 @@ void Worker::task_5()
               Mat save_img, out_Img;
 
               String save_name;
-              for(size_t i = filenames.size()*4/task_count; i<filenames.size();i++ )
+              for(int i = file_count*4/task_count; i<file_count;i++ )
                  {
 
-                      fisheyeImage = imread (filenames[i]);
+                      fisheyeImage = imread (file_names[i]);
                       remap( fisheyeImage, out_Img, map_x_glo, map_y_glo, INTER_LINEAR,
                                                                       BORDER_CONSTANT, Scalar(0, 0, 0) );
 
@@ -707,13 +707,15 @@ void Worker::task_5()
 
                       cout << "save_name =  " << save_name << endl;
                       imwrite(save_name,save_img );
+
+                      // stop convert image
+                      if (stop_convert == true )
+                      {
+                          goto done_task_5;
+                      }
                  }
 
-              // stop convert image
-              if (stop_convert == true )
-              {
-                  goto done_task_5;
-              }
+
 
     }
 
@@ -724,20 +726,25 @@ done_task_5:
 
 
 
-
-void Worker::receiveSignal3(QString input, QString output,int mode_p)
+void Worker::receive_dir(QString input, QString output,int mode_p, int count)
 {
 
-     cout << "Signal 3 from " <<  input.toStdString() << endl;
-     cout << "Signal 3 from " <<  output.toStdString() << endl;
-     cout << "mode_p " << mode_p << endl;
+//     cout << "Signal 3 from " <<  input.toStdString() << endl;
+//     cout << "Signal 3 from " <<  output.toStdString() << endl;
+//     cout << "mode_p " << mode_p << endl;
 
-     mode_prcess = mode_p;
-     input_dir   = input;
-     output_dir  = output;
+//     mode_prcess = mode_p;
+//     input_dir   = input;
 
-     // read all file in directory
-     glob(input_dir.toStdString(), filenames);
+
+//     // read all file in directory
+//     glob(input_dir.toStdString(), file_names);
+
+    cout << "mode_p, file_count :  " << mode_p << " ; " << count<<  endl;
+    cout << "file name W: " << input.toStdString() << endl;
+    file_names[count] = input.toStdString();
+    file_count = count + 1;
+    output_dir  = output;
 
 }
 

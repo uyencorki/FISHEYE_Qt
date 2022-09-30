@@ -44,8 +44,7 @@ LIBS += C:\opencv-3.2.0\release\bin\libopencv_videoio320.dll
 LIBS += C:\opencv-3.2.0\release\bin\libopencv_ml320.dll
 LIBS += C:\opencv-3.2.0\release\bin\libopencv_stitching320.dll
 
-RESOURCES += \
-    Resource.qrc
+
 
 DISTFILES += \
     HinoApp.PNG

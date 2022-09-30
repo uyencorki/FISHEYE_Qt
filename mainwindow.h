@@ -32,9 +32,11 @@ private slots:
     void on_spinBox_valueChanged(int arg1);
     void on_start_clicked();
     void MyTimerSlot();
-    void on_checkBox_stateChanged(int arg1);
 
     void on_Stop_Button_clicked();
+
+    void on_choose_input_clicked();
+    void on_choose_output_clicked();
 
 public slots:
     void get_run_percent(int ) ;
@@ -45,7 +47,7 @@ private:
     Ui::MainWindow *ui;
 
 signals:
-    void signal3(QString, QString, int );
+    void pass_dir(QString, QString, int, int );
     void stop_signal();
 
 };
