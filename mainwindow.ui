@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1210</width>
-    <height>803</height>
+    <width>1226</width>
+    <height>815</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -234,6 +234,19 @@ p, li { white-space: pre-wrap; }
          <string>Choose output directory</string>
         </property>
        </widget>
+       <widget class="QPushButton" name="Test_Button">
+        <property name="geometry">
+         <rect>
+          <x>490</x>
+          <y>610</y>
+          <width>151</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>TestButton</string>
+        </property>
+       </widget>
       </widget>
       <widget class="QLabel" name="spend_time">
        <property name="geometry">
@@ -348,7 +361,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1210</width>
+     <width>1226</width>
      <height>26</height>
     </rect>
    </property>

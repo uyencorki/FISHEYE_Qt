@@ -71,6 +71,20 @@ int vertical_processing(Mat &map_x, Mat &map_y, double He, double We,
        Point3f sphericalPoint;
        Mat new_img ;
 
+       QString file_name = "data.txt";
+
+       QFile fTextFile (file_name);
+
+       if (fTextFile.open(QIODevice::ReadWrite | QIODevice::Text))
+       {
+
+       }
+       QTextStream tStream(&fTextFile);
+       tStream.setCodec("UTF-8");
+       tStream.seek(0);
+
+
+       // test para
        for (int Xe = 0; Xe <Wf; Xe++)
             {
             for (int Ye = 0; Ye <Hf; Ye++)
@@ -86,11 +100,26 @@ int vertical_processing(Mat &map_x, Mat &map_y, double He, double We,
                    phi   = atan2(sqrt(pow(sphericalPoint.x,2) + pow(sphericalPoint.z,2)), sphericalPoint.y);
                    r     = ( (float) We ) * phi / FOV;
 
-                   map_x.at<float>(Ye, Xe) = (int) ( 0.5 * ( (float) We ) + r * cos(theta) );
-                   map_y.at<float>(Ye, Xe) = (int) ( 0.5 * ( (float) He ) + r * sin(theta) );
+
+
+                    // origi
+//                   map_x.at<float>(Ye, Xe) = qRound ( ( 0.5 * ( (float) We ) + r * cos(theta) ) );
+//                   map_y.at<float>(Ye, Xe) = qRound ( ( 0.5 * ( (float) He ) + r * sin(theta) ) );
+                   map_x.at<float>(Ye, Xe) =  (int) ( 0.5 * ( (float) We ) + r * cos(theta) );
+                   map_y.at<float>(Ye, Xe) =  (int) ( 0.5 * ( (float) He ) + r * sin(theta) );
+
+//                   map_x.at<float>(Ye, Xe) =  ( 0.5 * ( (float) We ) + r * cos(theta) );
+//                   map_y.at<float>(Ye, Xe) =  ( 0.5 * ( (float) He ) + r * sin(theta) );
+
+//                   fTextFile.write(QString::number(map_x.at<float>(Ye, Xe)).toUtf8());
+
+
+//                   cout << "Xe, Ye = " << Xe << " ; " << Ye <<
+//                           "  map x and y = " << map_x.at<float>(Ye, Xe) << " ; "  << map_y.at<float>(Ye, Xe) << endl;
                  }
                }
 
+       fTextFile.close();
         return 0;
 }
 
@@ -163,10 +192,37 @@ int IMG_coordinates_mode_0 ()
        map_x_glo = Mat::zeros(He, We,  CV_32F);
        map_y_glo = Mat::zeros(He, We,  CV_32F);
 
-       if (mode_prcess == 0 )
+       cout << "He = " << He << "We = " << We << endl;
 
+       if (mode_prcess == 0 )
        // remap image to theta image
        vertical_processing(map_x_glo, map_y_glo, He, We, Hf, Wf, FOV);
+
+       cout<< map_x_glo.rows << " row and cols " << map_x_glo.cols << endl;
+       // save matrix to file
+
+
+
+       cout << "map_x_glo ==  " << map_x_glo.at<float>(1,1) << endl;//
+       cout << "map_y_glo ==  " << map_y_glo.at<float>(1,1) << endl;//
+
+       QString filename="Data.txt";
+       QFile file( filename );
+       QByteArray A;
+
+       if ( file.open(QIODevice::ReadWrite) )
+       {
+           QTextStream stream( &file );
+           for(int i = 0 ; i <new_hei ; i ++ )
+               for (int j = 0; j < new_wid; j ++)
+               {
+                    cout << map_x_glo.at<double>(0,0);//                       stream << map_x_glo[i][j].value ;
+               }
+        }
+
+//       cout <<  "map_x_glo " << map_x_glo << endl;
+//       cout <<  "map_y_glo " << map_y_glo << endl;
+
 
        return 0;
 
@@ -197,7 +253,6 @@ int IMG_coordinates_mode_1 ()
     map_y_glo = Mat::zeros(new_hei, new_wid,  CV_32F);
 
     surround_processing(map_x_glo, map_y_glo, R, Cfx, Cfy, new_hei, new_wid);
-
 
     // creat black image
     int With_Black, Height_Black;
@@ -283,24 +338,50 @@ void Worker::task_1()
         cropped_image.create(global_He, global_We, image.type());
         int per_cent;
 
+
+
         cout << "output:   "  << output_dir.toStdString()<< endl;
         for(int i=0; i<file_count/task_count;i++ )
            {
 
                 // Read image and crop image
                 image = imread (file_names[i]);
-                image(cv::Rect(image.cols/2 -image.rows/2 ,0,image.rows,image.rows)).copyTo(cropped_image);
+                image(cv::Rect(image.cols/2 - image.rows/2 ,0,image.rows,image.rows)).copyTo(cropped_image);
 
                 // change image
                 remap( cropped_image, convert_img, map_x_glo, map_y_glo, INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0) );
 
+//                cout <<  "map_x_glo = "  << map_x_glo << endl;
+
                 // add black image and save image
                 convert_img.copyTo(res(Rect(convert_img.cols/2, 0, convert_img.cols ,convert_img.rows)));
-                save_name = output_dir.toStdString() + "/out_image" + to_string(i+1)  +".jpg";
+
+                // save crop image
+                save_name = output_dir.toStdString() + "/out_image_crop" + to_string(i+1)  +".jpg";
+                imwrite(save_name,cropped_image );
+                // convert image
+                save_name = output_dir.toStdString() + "/out_image_convert" + to_string(i+1)  +".jpg";
+                imwrite(save_name,convert_img );
+
+
+                // check pixel
+                Mat cropped_image_show = convert_img(Range(20,200), Range(400,1200));
+                imshow ("cropped_image_show ", cropped_image_show );
+                cout << " W and H = " << convert_img.rows << " ; " << convert_img.cols << endl ;
+
+                Mat cropped_image_show_ori = cropped_image(Range(50,200), Range(400,1080));
+                imshow ("cropped_image_show_ori ", cropped_image_show_ori );
+
+
+
+                // endl
+
+                save_name = output_dir.toStdString() + "/out_imagetask1" + to_string(i+1)  +".jpg";
 
                 // resize and save image
+
                 resize(res, save_img, Size(5376, 2688), INTER_LINEAR);
-                imwrite(save_name,save_img );
+                imwrite(save_name,res );
 
                 per_cent = int (i*100 /(file_count/task_count));
                 emit run_percent (per_cent);
@@ -399,6 +480,9 @@ void Worker::task_2()
                 // add black image and save image
                 convert_img.copyTo(res(Rect(convert_img.cols/2, 0, convert_img.cols ,convert_img.rows)));
                 save_name = output_dir.toStdString() + "/out_image" + to_string(i+1)  +".jpg";
+
+
+
 
 
                 // resize and save image
@@ -729,16 +813,6 @@ done_task_5:
 void Worker::receive_dir(QString input, QString output,int mode_p, int count)
 {
 
-//     cout << "Signal 3 from " <<  input.toStdString() << endl;
-//     cout << "Signal 3 from " <<  output.toStdString() << endl;
-//     cout << "mode_p " << mode_p << endl;
-
-//     mode_prcess = mode_p;
-//     input_dir   = input;
-
-
-//     // read all file in directory
-//     glob(input_dir.toStdString(), file_names);
 
     cout << "mode_p, file_count :  " << mode_p << " ; " << count<<  endl;
     cout << "file name W: " << input.toStdString() << endl;
@@ -767,22 +841,5 @@ void Worker::stopThreads()
   cout << "stopThreads " << endl;
   stop_convert = true;
 
-//  sync.lock();
 
-//  if (!stopped.load())
-//  {
-//    stopped = 1;
-
-//    qDebug() << "Stop threads: start";
-
-//    if (pause)
-//      resumeThreads();
-
-//    for (auto f : pool.futures())
-//      f.cancel();
-
-//    qDebug() << "Stop threads: end";
-//  }
-
-//  sync.unlock();
 }

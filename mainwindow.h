@@ -38,6 +38,8 @@ private slots:
     void on_choose_input_clicked();
     void on_choose_output_clicked();
 
+    void on_Test_Button_clicked();
+
 public slots:
     void get_run_percent(int ) ;
     void incrThreadDoneChange();

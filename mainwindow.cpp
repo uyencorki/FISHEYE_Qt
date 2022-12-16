@@ -128,22 +128,22 @@ int  buildMap_2_pano (Mat &map_x, Mat &map_y, int Ws, int Hs, int Wd, int Hd )
 }
 
 
-int buildMap_2_img ( Mat &map_x, Mat &map_y, int R, float Cfx, float Cfy , int new_hei, int new_wid)
+int buildMap_2_img ( Mat &map_x, Mat &map_y, int R, float Cfx, float Cfy , int new_hei_test, int new_wid_test)
 {
     float Pi = 3.14159;
     float r, a, theta;
     int Xf,Yf;
 
     Mat src;
-    src = Mat::zeros(new_hei , new_wid , CV_8UC3);
+    src = Mat::zeros(new_hei_test , new_wid_test , CV_8UC3);
     Vec3b color;
 
-    for (int Ye = 0; Ye < new_hei; Ye ++ )
+    for (int Ye = 0; Ye < new_hei_test; Ye ++ )
     {
-        for (int Xe = 0; Xe < new_wid; Xe ++)
+        for (int Xe = 0; Xe < new_wid_test; Xe ++)
         {
-            r = (static_cast<float>(Ye)/static_cast<float> (new_hei)) *static_cast<float>(R) ;
-            a = static_cast<float>(Xe)/static_cast<float>(new_wid);
+            r = (static_cast<float>(Ye)/static_cast<float> (new_hei_test)) *static_cast<float>(R) ;
+            a = static_cast<float>(Xe)/static_cast<float>(new_wid_test);
             theta = a*2*Pi;
 
             Xf = int (Cfx+r*sin(theta));
@@ -194,7 +194,7 @@ int findCorrespondingFisheyePoint(Mat &map_x, Mat &map_y, double He, double We,
 
 }
 
-int Proccess (QString input_dir, QString output_dir, int mode_change )
+int Proccess (QString input_dir, QString output_dir_test, int mode_change )
 {
     Mat image, out_Img;
     Mat dst_flip;
@@ -247,9 +247,9 @@ int Proccess (QString input_dir, QString output_dir, int mode_change )
 
        // process directory string
        input_dir = input_dir.replace("\\", "/");
-       output_dir = output_dir.replace("\\", "/");
+       output_dir_test = output_dir_test.replace("\\", "/");
        String in_folder  = input_dir.toStdString();
-       String out_folder = output_dir.toStdString();
+       String out_folder = output_dir_test.toStdString();
        in_folder = in_folder + "/*.jpg";
 
        // read all file in directory
@@ -349,7 +349,7 @@ int Proccess (QString input_dir, QString output_dir, int mode_change )
 
     float Pi = 3.14159;
     float degree, ratio_degree, R, Cfx, Cfy;
-    int Hf, Wf, new_hei, new_wid;
+    int Hf, Wf, new_hei_test, new_wid_test;
     degree = 240;
     ratio_degree = degree / 360;
     Hf = image.rows;
@@ -358,17 +358,17 @@ int Proccess (QString input_dir, QString output_dir, int mode_change )
     R = Hf/2;
     Cfx = Wf/2;
     Cfy = Hf/2;
-    new_hei = int(R*ratio_degree);
-    new_wid = int(2*Pi*R*ratio_degree);
-    Mat map_x = Mat::zeros(new_hei, new_wid,  CV_32F);
-    Mat map_y = Mat::zeros(new_hei, new_wid,  CV_32F);
+    new_hei_test = int(R*ratio_degree);
+    new_wid_test = int(2*Pi*R*ratio_degree);
+    Mat map_x = Mat::zeros(new_hei_test, new_wid_test,  CV_32F);
+    Mat map_y = Mat::zeros(new_hei_test, new_wid_test,  CV_32F);
 
-    buildMap_2_img(map_x, map_y, R, Cfx, Cfy, new_hei, new_wid);
+    buildMap_2_img(map_x, map_y, R, Cfx, Cfy, new_hei_test, new_wid_test);
 
 
     int With_Black, Height_Black;
-    With_Black   =   new_wid;
-    Height_Black =   new_hei * 2;
+    With_Black   =   new_wid_test;
+    Height_Black =   new_hei_test * 2;
 
     Mat3b res(Height_Black, With_Black, Vec3b(0,0,0));
     cout << "res W, H = " << res.rows << "  "<<  res.cols << endl;
@@ -418,6 +418,9 @@ MainWindow::MainWindow(QWidget *parent)
     // setup signal and slot
     connect(timer, SIGNAL(timeout()),this, SLOT(MyTimerSlot()));
     timer->start(100);
+
+
+
 
     // msec
     waitKey(0);    // Waits for a keystroke in the window
@@ -529,8 +532,6 @@ void MainWindow::on_start_clicked()
 
 }
 
-
-
 void MainWindow::MyTimerSlot()
 {
     if (print_time == 1 && done == false)
@@ -538,6 +539,7 @@ void MainWindow::MyTimerSlot()
         timer_1.elapsed();
         ui->spend_time->setText(QString::number( timer_1.elapsed()/1000));
     }
+
 
 }
 
@@ -617,8 +619,6 @@ void MainWindow::on_choose_input_clicked()
         }
         ui->input_folder->setText(Dir);
 
-//        cout  << "Dir == " << Dir.toStdString() << endl;
-//        cout << "neededWord:    " << neededWord.toStdString() << endl;
 
     }
 }
@@ -626,24 +626,6 @@ void MainWindow::on_choose_input_clicked()
 void MainWindow::on_choose_output_clicked()
 {
     ui->output_folder->setTextColor(QColor(105, 105, 105));
-
-//    QString filename =  QFileDialog::getOpenFileName(this,"output",QDir::currentPath(),
-//             "All files (*.*) ;; images (*.png *.jpg) ;; Document files (*.doc *.rtf)");
-//    if( !filename.isNull() )
-//      {
-//        qDebug() << "selected file path : " << filename.toUtf8();
-//      }
-
-
-//    QString filename_1 =  QFileDialog::getExistingDirectory( this, "output", QDir::currentPath(),
-//                                                             QFileDialog::ShowDirsOnly );
-//    if( !filename_1.isNull() )
-//              {
-//                qDebug() << "selected file path : " << filename_1.toUtf8();
-//              }
-//    ui->output_folder->setText(filename_1);
-
-
 
     QString filename_1 =  QFileDialog::getExistingDirectory( this, "output", QDir::currentPath(),
                                             QFileDialog::DontUseCustomDirectoryIcons );
@@ -653,14 +635,226 @@ void MainWindow::on_choose_output_clicked()
               }
     ui->output_folder->setText(filename_1);
 
+}
 
-//    QString filename_1 =  QFileDialog::getExistingDirectory
-//            ( this, "output", QDir::currentPath(),
-//                                            QFileDialog::DontUseNativeDialog );
-//    if( !filename_1.isNull() )
-//              {
-//                qDebug() << "selected file path : " << filename_1.toUtf8();
-//              }
-//    ui->output_folder->setText(filename_1);
 
+
+
+
+
+
+
+
+// test code
+int vertical_processing_test(Mat &map_x, Mat &map_y, double He, double We,
+                                   double Hf, double Wf, double FOV)
+{
+//       Point2f fisheyePoint;
+       float theta, phi, r;
+       Point3f sphericalPoint;
+       Mat new_img ;
+
+       QString file_name = "data.txt";
+
+       QFile fTextFile (file_name);
+
+       if (fTextFile.open(QIODevice::ReadWrite | QIODevice::Text))
+       {
+
+       }
+       QTextStream tStream(&fTextFile);
+       tStream.setCodec("UTF-8");
+       tStream.seek(0);
+
+
+       // test para
+       for (int Xe = 0; Xe <Wf; Xe++)
+            {
+            for (int Ye = 0; Ye <Hf; Ye++)
+                {
+                   theta = CV_PI * (Xe / ( (float) We ) - 0.5);
+                   phi   = CV_PI * (Ye / ( (float) He ) - 0.5);
+
+                   sphericalPoint.x = cos(phi) * sin(theta);
+                   sphericalPoint.y = cos(phi) * cos(theta);
+                   sphericalPoint.z = sin(phi);
+
+                   theta = atan2(sphericalPoint.z, sphericalPoint.x);
+                   phi   = atan2(sqrt(pow(sphericalPoint.x,2) + pow(sphericalPoint.z,2)), sphericalPoint.y);
+                   r     = ( (float) We ) * phi / FOV;
+
+
+
+                    // origi
+//                   map_x.at<float>(Ye, Xe) = qRound ( ( 0.5 * ( (float) We ) + r * cos(theta) ) );
+//                   map_y.at<float>(Ye, Xe) = qRound ( ( 0.5 * ( (float) He ) + r * sin(theta) ) );
+
+//                   map_x.at<float>(Ye, Xe) =  (int) ( 0.5 * ( (float) We ) + r * cos(theta) );
+//                   map_y.at<float>(Ye, Xe) =  (int) ( 0.5 * ( (float) He ) + r * sin(theta) );
+
+                   map_x.at<float>(Ye, Xe) =  ( 0.5 * ( (float) We ) + r * cos(theta) );
+                   map_y.at<float>(Ye, Xe) =  ( 0.5 * ( (float) He ) + r * sin(theta) );
+
+//                   fTextFile.write(QString::number(map_x.at<float>(Ye, Xe)).toUtf8());
+
+
+//                   cout << "Xe, Ye = " << Xe << " ; " << Ye <<
+//                           "  map x and y = " << map_x.at<float>(Ye, Xe) << " ; "  << map_y.at<float>(Ye, Xe) << endl;
+                 }
+               }
+
+       fTextFile.close();
+        return 0;
+}
+
+
+
+// global variable
+int global_He_test, global_We_test;
+
+Mat map_x_glo_test, map_y_glo_test;
+int new_hei_test, new_wid_test;
+QString file_names_test = "D:/HUU_UYEN/Software/KIRARI__NINJA_DAITRON/FISHEYE_CPP/EXE_FILE/release/input/Aimage1222.jpg";
+
+QString output_dir_test = "D:/HUU_UYEN/Software/KIRARI__NINJA_DAITRON/FISHEYE_CPP/EXE_FILE/release/output";
+int IMG_coordinates_mode_0_test ()
+{
+
+
+      // decale parameter
+       int Hf, Wf;       //Height, width and FOV for the input image (=fisheyeImage)
+       double FOV = PI;  //FOV in radian
+       int He, We;
+       Mat fisheyeImage,  cropped_image ;
+
+
+       // read first image to know with and height
+       fisheyeImage = imread (file_names_test.toStdString());
+       Hf = fisheyeImage.size().height;
+       Wf = fisheyeImage.size().width;
+
+       // crop first image
+       cropped_image.create(Hf, Wf/2, fisheyeImage.type());
+       fisheyeImage(Rect(Wf/2 - Hf/2 , 0, Hf, Hf)).copyTo(cropped_image);
+
+       // get With/Height of croped first image
+       Wf =     cropped_image.rows;
+       Hf =     cropped_image.cols;
+       We = Wf;
+       He = Hf;
+
+       global_He_test = He;
+       global_We_test = We;
+       // creat matrix cordinate
+       map_x_glo_test = Mat::zeros(He, We,  CV_32F);
+       map_y_glo_test = Mat::zeros(He, We,  CV_32F);
+
+       cout << "He = " << He << "We = " << We << endl;
+
+       // remap image to theta image
+       vertical_processing_test(map_x_glo_test, map_y_glo_test, He, We, Hf, Wf, FOV);
+
+       cout<< map_x_glo_test.rows << " row and cols " << map_x_glo_test.cols << endl;
+       // save matrix to file
+
+
+
+       cout << "map_x_glo_test ==  " << map_x_glo_test.at<float>(1,1) << endl;//
+       cout << "map_y_glo_test ==  " << map_y_glo_test.at<float>(1,1) << endl;//
+
+//       QString filename="Data.txt";
+//       QFile file( filename );
+//       QByteArray A;
+
+//       if ( file.open(QIODevice::ReadWrite) )
+//       {
+//           QTextStream stream( &file );
+//           for(int i = 0 ; i <new_hei_test ; i ++ )
+//               for (int j = 0; j < new_wid_test; j ++)
+//               {
+//                    cout << map_x_glo_test.at<double>(0,0);//                       stream << map_x_glo_test[i][j].value ;
+//               }
+//        }
+
+
+
+       return 0;
+
+}
+
+
+void task_1()
+{
+    cout << "task_1 is runing" << endl;
+
+
+        // creat Black image
+        int With_Black, Height_Black;
+        With_Black   =   global_We_test *2;
+        Height_Black =   global_He_test ;
+        Mat3b res(Height_Black, With_Black, Vec3b(0,0,0));
+
+        // process all image in the folder
+        String save_name;
+        Mat  image,cropped_image,convert_img, save_img;
+
+        image = imread (file_names_test.toStdString());
+        cropped_image.create(global_He_test, global_We_test, image.type());
+
+                // Read image and crop image
+                image = imread (file_names_test.toStdString());
+                image(cv::Rect(image.cols/2 - image.rows/2 ,0,image.rows,image.rows)).copyTo(cropped_image);
+
+                // change image
+                remap( cropped_image, convert_img, map_x_glo_test, map_y_glo_test, INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0) );
+
+//                cout <<  "map_x_glo_test = "  << map_x_glo_test << endl;
+
+                // add black image and save image
+                convert_img.copyTo(res(Rect(convert_img.cols/2, 0, convert_img.cols ,convert_img.rows)));
+
+                // save crop image
+                save_name = output_dir_test.toStdString() + "/out_image_crop"  +".jpg";
+                imwrite(save_name,cropped_image );
+                // convert image
+                save_name = output_dir_test.toStdString() + "/out_image_convert"  +".jpg";
+                imwrite(save_name,convert_img );
+
+
+                // check pixel
+                Mat cropped_image_show = convert_img(Range(20,200), Range(400,1200));
+                imshow ("cropped_image_show ", cropped_image_show );
+                cout << " W and H = " << convert_img.rows << " ; " << convert_img.cols << endl ;
+
+                Mat cropped_image_show_ori = cropped_image(Range(50,200), Range(400,1080));
+                imshow ("cropped_image_show_ori ", cropped_image_show_ori );
+
+
+
+                // endl
+
+                save_name =output_dir_test.toStdString() +  "/out_image_convert_222.jpg";
+
+                // resize and save image
+
+                resize(res, save_img, Size(5376, 2688), INTER_LINEAR);
+                imwrite(save_name,res );
+
+
+
+}
+
+
+
+
+
+
+
+
+
+void MainWindow::on_Test_Button_clicked()
+{
+
+IMG_coordinates_mode_0_test();
+task_1();
 }
